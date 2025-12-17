@@ -4,7 +4,7 @@ from ultralytics import YOLO
 # =============================
 # 1. CONFIG
 # =============================
-MODEL_PATH = "best.pt"
+MODEL_PATH = "best (1).onnx"
 IMG_SIZE = 640
 CONF_THRES = 0.5
 IOU_THRES = 0.5
@@ -17,15 +17,10 @@ mon = input("Hay chon mon muon lay: ")
 selected_classes = [x.strip() for x in mon.split(",")]
 
 NEEDED_CLASSES.extend(selected_classes)
-# =============================
-# 2. LOAD MODEL
-# =============================
-model = YOLO('best (1).onnx',task='detect')
+
+model = YOLO(MODEL_PATH,task='detect')
 class_names = model.names
 
-# =============================
-# 3. OPEN WEBCAM
-# =============================
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
 # Set độ phân giải cho Rapoo C260
@@ -33,20 +28,17 @@ cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 cap.set(cv2.CAP_PROP_FPS, 30)
 
-if not cap.isOpened():
-    print("❌ Không mở được webcam")
-    exit()
+# if not cap.isOpened():
+#     print("Không mở được webcam")
+#     exit()
 
-print("✅ Webcam & model đã sẵn sàng")
+# print("Webcam & model đã sẵn sàng")
 
 def bbox_center(x1, y1, x2, y2):
     cx = int((x1 + x2) / 2)
     cy = int((y1 + y2) / 2)
     return cx, cy
 
-# =============================
-# 4. REAL-TIME LOOP
-# =============================
 while True:
     ret, frame = cap.read()
     if not ret:
@@ -63,9 +55,6 @@ while True:
 
     detections = []
 
-    # =============================
-    # 5. FILTER CLASS
-    # =============================
     for box in results[0].boxes:
         cls_id = int(box.cls[0])
         cls_name = class_names[cls_id]
@@ -82,9 +71,6 @@ while True:
             "bbox": (x1, y1, x2, y2)
         })
 
-    # =============================
-    # 6. VẼ KẾT QUẢ
-    # =============================
     if detections:
         best = max(detections, key=lambda x: x["conf"])
 
@@ -125,8 +111,5 @@ while True:
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-# =============================
-# 7. CLEANUP
-# =============================
 cap.release()
 cv2.destroyAllWindows()
